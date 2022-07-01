@@ -80,7 +80,7 @@ class erroData:
     def new_match(self):
         # 匹配商品属性和pid
         try:
-            sql = "ALTER TABLE result ADD (program_id VARCHAR ( 255 ),integral_judge VARCHAR ( 255 ),business_channel VARCHAR ( 255 ))"
+            sql = "ALTER TABLE result ADD (program_id VARCHAR ( 255 ),integral_judge VARCHAR ( 255 ))"
             cursor.execute(sql)
             cursor.commit()
         except Exception as e:

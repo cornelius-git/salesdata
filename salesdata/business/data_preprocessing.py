@@ -153,13 +153,14 @@ def pid_aid(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name=
             break
     cursor.commit()
 
-def fuyu_jingdong(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="商城订单.xlsx"):
+def fuyu_jingdong(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="商城订单.csv"):
     # 福域订单导入
-    fuyu = pd.read_excel(r"{}\{}".format(file_path,file_name))
-    fuyu = fuyu[fuyu["订单状态"] != "已关闭"]
-    fuyu = fuyu[["订单号","供货商","SKU","数量","来源SPU","单价（元）","商品名称"]]
+    fuyu = pd.read_csv(r"{}\{}".format(file_path,file_name))
+    fuyu = fuyu[(fuyu["订单状态"] != 7) & (fuyu["退款状态"] != 1) & (fuyu["订单状态"] != 4)]
+    fuyu["实际单价"] = fuyu["实付福币"]/fuyu["数量"]
+    fuyu = fuyu[["订单号","供货商","SKU","数量","来源spu","实际单价","商品名称"]]
     fuyu.rename(columns={"订单号":"business_id","供货商":"business_channel","SKU":"sku",
-                         "数量":"business_quantity","来源SPU":"spu","单价（元）":"business_price",
+                         "数量":"business_quantity","来源SPU":"spu","实际单价":"business_price",
                          "商品名称":"business_name"},inplace=True)
     fuyu.reset_index(drop=True,inplace=True)
 

@@ -24,7 +24,6 @@ class dataChange:
             i += 1
             if res:
                 result = fuyu.insert_many(res)
-
             else:
                 break
         business = self.db.business
@@ -63,7 +62,7 @@ class dataChange:
                 break
             if result["get_integral"] <= fg:
                 fg = fg -result["get_integral"]
-                del result["business_channel"]
+                # del result["business_channel"]
                 self.base.update(result)
                 # qy = self.fuyu.delete_one({"index":result["index"]})
                 fel_list.append(result["index"])
