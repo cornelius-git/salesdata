@@ -98,7 +98,7 @@ def action_relationship(file_path,file_name,sheet_name):
                         '有偿无偿': 'judge'}, inplace=True)
     pid.to_sql("action_programid",engine, if_exists="replace", index=False)
 
-def pid_aid(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="Program_ID与Action_ID对应关系表.xlsx"):
+def pid_aid(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="Program_ID与Action_ID对应关系表导入版本.xlsx"):
     # pid和action_id的对应关系导入
 
     sql = "TRUNCATE action_program"
@@ -157,15 +157,30 @@ def fuyu_jingdong(file_path="D:\\1何军\\财务系统\\系统导出数据",file
     # 福域订单导入
     fuyu = pd.read_csv(r"{}\{}".format(file_path,file_name))
     fuyu = fuyu[(fuyu["订单状态"] != 7) & (fuyu["退款状态"] != 1) & (fuyu["订单状态"] != 4)]
-    fuyu["实际单价"] = fuyu["实付福币"]/fuyu["数量"]
+
     fuyu = fuyu[["订单号","供货商","SKU","数量","来源spu","实际单价","商品名称"]]
     fuyu.rename(columns={"订单号":"business_id","供货商":"business_channel","SKU":"sku",
                          "数量":"business_quantity","来源SPU":"spu","实际单价":"business_price",
                          "商品名称":"business_name"},inplace=True)
+
     fuyu.reset_index(drop=True,inplace=True)
 
     # fuyu["business_id"] = fuyu["business_id"].apply(lambda x: str(x).split("_")[0])
     fuyu.to_sql("business_relationship",engine,if_exists="replace")
+
+def fuyu_skuinfo(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="商城订单sku.csv"):
+    fuyu = pd.read_csv(r"{}\{}".format(file_path, file_name))
+    fuyu = fuyu[fuyu["refund_stauts"] != 1]
+    fuyu = fuyu[fuyu["send_num"].notnull()]
+    fuyu = fuyu[["order_no", "buy_num", "sku_code", "shared_fb", "spu_name", "business_channel"]]
+    fuyu.rename(columns={"order_no": "business_id", "business_channel": "business_channel", "sku_code": "sku",
+                         "buy_num": "business_quantity",  "shared_fb": "business_price",
+                         "spu_name": "business_name"}, inplace=True)
+
+    fuyu.reset_index(drop=True, inplace=True)
+
+    # fuyu["business_id"] = fuyu["business_id"].apply(lambda x: str(x).split("_")[0])
+    fuyu.to_sql("business_relationship", engine, if_exists="replace")
 
 def caiwu_account(file_path="D:\\1何军\\财务系统",file_name="积分原始数据.xlsx"):
     # 积分原始对账数据
@@ -180,9 +195,10 @@ def dashang_import():
 if __name__=="__main__":
     # 原始数据导入
     # orignal_import()
-    fuyu_jingdong()
+    # fuyu_jingdong()
+    # fuyu_skuinfo()
     # action_id 和progra_id对应关系导入
-    # pid_aid()
+    pid_aid()
     # caiwu_account()
     #     打赏
     # dashang_import()

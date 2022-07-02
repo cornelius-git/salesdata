@@ -14,8 +14,10 @@ class dataChange:
         self.spbu = self.db.spbu
         self.id = 0
         self.log = open("erro.txt",mode="a+",encoding="utf-8")
+        self.rt = open("未查询到.txt",mode="a+",encoding="utf-8")
     def fuyuQuery(self):
         fuyu = self.db.fuyu
+
         i = 0
         while True:
             sql = "SELECT * FROM result ORDER BY `index` asc limit {},10000".format(i*10000)
@@ -51,18 +53,20 @@ class dataChange:
                 break
     def mongoInsert(self):
         fg = self.base["business_price"]
-        results = self.fuyu.find({"business_id":self.base["business_id"]}).sort('get_create_time', ASCENDING)
-        fel_list = []
-        if results == None:
+        # 不比对福币中没有的business_id
+        rt = self.fuyu.count_documents({"business_id": self.base["business_id"]})
+        if rt == 0:
+            self.rt.write(str(self.base["business_id"])+"\t"+str(fg)+"\n")
             return
+        results = self.fuyu.find({"business_id": self.base["business_id"]})
+        fel_list = []
         for result in results:
             del self.base["index"]
             if fg == 0:
-
                 break
             if result["get_integral"] <= fg:
                 fg = fg -result["get_integral"]
-                # del result["business_channel"]
+                del result["business_channel"]
                 self.base.update(result)
                 # qy = self.fuyu.delete_one({"index":result["index"]})
                 fel_list.append(result["index"])
@@ -90,8 +94,7 @@ class accountCompare():
         self.compare = pd.DataFrame()
     def original_povit(self):
         # 透视原始表单
-        sql = "SELECT * FROM result where business_id in" \
-              " ( SELECT business_id from fuyu_result)"
+        sql = "SELECT * FROM result"
         original = pd.read_sql(sql,engine)
         self.o_p = original.pivot_table(index=["program_id"],values=["get_integral"],aggfunc=np.sum)
         self.o_p.reset_index(inplace=True)
@@ -99,7 +102,7 @@ class accountCompare():
     def jindong_povit(self):
         # 透视京东表单
 
-        jingdong= pd.DataFrame(list(client.fuyu.spbu))
+        jingdong= pd.DataFrame(list(client.fuyu.spbu.find()))
         self.j_p = jingdong.pivot_table(index=["program_id"],values=["get_integral"],aggfunc=np.sum)
         self.j_p.reset_index(inplace=True)
         self.j_p.rename(columns={"get_integral":"fuyu_integral"},inplace=True)
