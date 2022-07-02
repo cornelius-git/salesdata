@@ -33,8 +33,8 @@ class erroData:
 
     def refund(self):
         # 部分退款
-        sql ="SELECT business_id,integral fund_integral FROM user_account_integral_log WHERE action_id =41 AND create_time "\
-              "BETWEEN '{}' and '{}'".format(self.start_time,self.end_time)
+        sql ="SELECT business_id,integral fund_integral FROM user_account_integral_log WHERE action_id =41 "
+             # " AND create_time "\ "BETWEEN '{}' and '{}'".format(self.start_time,self.end_time)
         self.part = pd.read_sql(sql,engine)
         self.part["business_id"] = self.part["business_id"].apply(lambda x: str(x).split("_")[0])
         self.pivot_table = self.part.pivot_table(index=["business_id"],values=["fund_integral"],aggfunc=np.sum)
@@ -181,6 +181,8 @@ class compareDifferent:
         # print(self.result.columns)
         self.aim.index = self.new.index
         self.aim["integral_judge"] = self.new["integral_judge"]
+        self.result.fillna(0,inplace=True)
+        self.aim.fillna(0,inplace=True)
         for j in column_list[1:]:
             name1 = str(j).replace("新账","报账")
             self.aim[j] = self.result[j]
@@ -221,6 +223,6 @@ class dataSave:
     def __init__(self):
         pass
 if  __name__ == "__main__":
-    erroData(start_time="2021-05-01",end_time="2022-07-01").run()
+    # erroData(start_time="2021-05-01",end_time="2022-07-01").run()
     # erroData(start_time="2021-05-01", end_time="2022-07-01").macth_attribute_pid()
     compareDifferent().month_compare()

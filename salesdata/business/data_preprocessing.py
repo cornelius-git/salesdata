@@ -171,7 +171,7 @@ def fuyu_jingdong(file_path="D:\\1何军\\财务系统\\系统导出数据",file
 def fuyu_skuinfo(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="商城订单sku.csv"):
     fuyu = pd.read_csv(r"{}\{}".format(file_path, file_name))
     fuyu = fuyu[fuyu["refund_stauts"] != 1]
-    fuyu = fuyu[fuyu["send_num"].notnull()]
+    # fuyu = fuyu[fuyu["send_num"].notnull()]
     fuyu = fuyu[["order_no", "buy_num", "sku_code", "shared_fb", "spu_name", "business_channel"]]
     fuyu.rename(columns={"order_no": "business_id", "business_channel": "business_channel", "sku_code": "sku",
                          "buy_num": "business_quantity",  "shared_fb": "business_price",
@@ -196,7 +196,7 @@ if __name__=="__main__":
     # 原始数据导入
     # orignal_import()
     # fuyu_jingdong()
-    # fuyu_skuinfo()
+    fuyu_skuinfo()
     # action_id 和progra_id对应关系导入
     pid_aid()
     # caiwu_account()
