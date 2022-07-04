@@ -185,8 +185,11 @@ def fuyu_skuinfo(file_path="D:\\1何军\\财务系统\\系统导出数据",file_
 def caiwu_account(file_path="D:\\1何军\\财务系统",file_name="积分原始数据.xlsx"):
     # 积分原始对账数据
     caiwu = pd.read_excel(r"{}\{}".format(file_path,file_name),dtype={"sale_month": str})
-    caiwu["sale_month"] = caiwu["sale_month"].apply(lambda x: str(x)[:7])
-    caiwu.to_sql("caiwu_account",engine, if_exists="replace", index=False)
+    six_caiwu = pd.read_excel(r"{}\{}".format(file_path,"6原始数据.xlsx"),dtype={"sale_month": str})
+    sum_caiwu = pd.concat([caiwu,six_caiwu],axis=0)
+    sum_caiwu["sale_month"] = sum_caiwu["sale_month"].apply(lambda x: str(x)[:7])
+    sum_caiwu.reset_index(drop=True,inplace=True)
+    sum_caiwu.to_sql("caiwu_account",engine, if_exists="replace")
 
 def dashang_import():
     sibada = pd.read_excel(r"D:\1何军\财务系统\系统导出数据\dashang.xlsx")
@@ -196,10 +199,10 @@ if __name__=="__main__":
     # 原始数据导入
     # orignal_import()
     # fuyu_jingdong()
-    fuyu_skuinfo()
+    # fuyu_skuinfo()
     # action_id 和progra_id对应关系导入
-    pid_aid()
-    # caiwu_account()
+    # pid_aid()
+    caiwu_account()
     #     打赏
     # dashang_import()
     # fuyu_jingdong()

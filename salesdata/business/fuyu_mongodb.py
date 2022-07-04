@@ -20,7 +20,7 @@ class dataChange:
 
         i = 0
         while True:
-            sql = "SELECT * FROM result ORDER BY `index` asc limit {},10000".format(i*10000)
+            sql = "SELECT * FROM caiwu_account ORDER BY `index` asc limit {},10000".format(i*10000)
             ress = cursor.execute(sql)
             res = [dict(zip(res.keys(),res)) for res in ress]
             i += 1
@@ -58,7 +58,7 @@ class dataChange:
         if rt == 0:
             self.rt.write(str(self.base["business_id"])+"\t"+str(fg)+"\n")
             return
-        results = self.fuyu.find({"business_id": self.base["business_id"]})
+        results = self.fuyu.find({"business_id": self.base["business_id"]}).sort("get_create_time",ASCENDING)
         fel_list = []
         for result in results:
             del self.base["index"]
@@ -66,7 +66,11 @@ class dataChange:
                 break
             if result["get_integral"] <= fg:
                 fg = fg -result["get_integral"]
-                del result["business_channel"]
+                # try:
+                #     del result["business_channel"]
+                # except Exception as e:
+                #     # print(e)
+                #     pass
                 self.base.update(result)
                 # qy = self.fuyu.delete_one({"index":result["index"]})
                 fel_list.append(result["index"])
@@ -79,7 +83,7 @@ class dataChange:
                 result["get_integral"] = fg
                 qy = self.fuyu.update_one({"index":result["index"]},{'$set':{"get_integral":qw}})
 
-                del result["business_channel"]
+                # del result["business_channel"]
                 self.base.update(result)
                 del self.base["_id"]
                 qy = self.spbu.insert_one(self.base)
@@ -122,7 +126,7 @@ class accountCompare():
 if __name__ == "__main__":
     dataChange().fuyuQuery()
     dataChange().data_query()
-    accountCompare().run()
+    # accountCompare().run()
 
 
 
