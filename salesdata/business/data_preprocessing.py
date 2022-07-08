@@ -34,19 +34,24 @@ def jingdong_import(file_path,jingdong_name,sheet_name):
                              "商品名称": "business_name", "商品税率": "business_tax", "商品数量": "jbussiness_number",
                              "商品含税单价": "bussiness_tax_price", "商品含税总额": "business_total_tax_price",
                               "实际支付金额": "pay_price"}, inplace=True)
+    jingdong["child_number_code"] = jingdong.apply(lambda x: "jd" + str(x["child_number"])+str(x["business_code"]),axis=1)
+    business = jingdong[jingdong["business_type"] != "运费"]
+    business.reset_index(drop=True,inplace=True)
+    business.to_sql("jingdong", engine, if_exists="replace")
     # "商品未税总额（未税单价*数量）": "business_total_price",
     #                              "商品未税单价": "bussiness_price",
     # 运费分摊到每个商品上面
-    jingdong[["origin_number", "business_code"]] = jingdong[["origin_number", "business_code"]].astype(str)
-    jingdong["business_code"] = jingdong["business_code"].apply(lambda x: str(x).replace("fre", ""))
-    jingdong["Identification_code"] = jingdong["origin_number"] + jingdong["business_code"]
 
-    freight = jingdong[jingdong["business_type"] == "运费"][["Identification_code","origin_number", "business_code",
-                                                           "bussiness_tax_price"]]
-
-    freight.drop(["origin_number","business_code"],axis=1,inplace=True)
-    freight.rename(columns={"bussiness_tax_price":"flow_fee"},inplace=True)
-    business = jingdong[jingdong["business_type"] != "运费"]
+    # jingdong[["origin_number", "business_code"]] = jingdong[["origin_number", "business_code"]].astype(str)
+    # jingdong["business_code"] = jingdong["business_code"].apply(lambda x: str(x).replace("fre", ""))
+    # jingdong["Identification_code"] = jingdong["origin_number"] + jingdong["business_code"]
+    #
+    # freight = jingdong[jingdong["business_type"] == "运费"][["Identification_code","origin_number", "business_code",
+    #                                                        "bussiness_tax_price"]]
+    #
+    # freight.drop(["origin_number","business_code"],axis=1,inplace=True)
+    # freight.rename(columns={"bussiness_tax_price":"flow_fee"},inplace=True)
+    # business = jingdong[jingdong["business_type"] != "运费"]
     # 原始运费重构
     # count_number = pd.pivot_table(business, index="origin_number", values="bussiness_number", aggfunc=np.sum)
     #
@@ -61,14 +66,14 @@ def jingdong_import(file_path,jingdong_name,sheet_name):
     # freight.fillna(0, inplace=True)
     # freight.to_excel("yunfei.xlsx")
     # business.to_excel("diyi.xlsx")
-    result = pd.merge(business, freight, how="left", on="Identification_code")
-    result.fillna(0,inplace=True)
+    # result = pd.merge(business, freight, how="left", on="Identification_code")
+    # result.fillna(0,inplace=True)
     # result["real_pay_price"] = result["flow_fee"] / result["bussiness_total_number"] * result["bussiness_number"] + \
     #                            result["pay_price"]
 
-    result["real_pay_price"] = result.loc[:,"bussiness_tax_price"] + result.loc[:,"flow_fee"]
-
-    result.to_sql("jingdong", engine, if_exists="replace")
+    # result["real_pay_price"] = result.loc[:,"bussiness_tax_price"] + result.loc[:,"flow_fee"]
+    #
+    # result.to_sql("jingdong", engine, if_exists="replace")
 
 
 def jingdong_relationship(file_path,file_name,sheet_list):
@@ -83,6 +88,8 @@ def jingdong_relationship(file_path,file_name,sheet_list):
                                      '商城单价': 'business_price', '数量': 'business_number', '商品品类': 'business_type'},
                             inplace=True)
         relation_file =  relation_file.astype(str)
+        relation_file["business_id_code"] = relation_file.apply(lambda x: str(x['business_id'])+str(x['business_code']),axis=1)
+        relation_file['child_number_code'] = relation_file.apply(lambda x: "jd"+str(x['child_number'])+str(x['business_code']),axis=1)
         # '物流单号': ' logistics_number',
         if i == 0:
             relation_file.to_sql("guanxi", engine, if_exists="replace",index=False)
@@ -153,20 +160,26 @@ def pid_aid(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name=
             break
     cursor.commit()
 
-def fuyu_jingdong(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="商城订单.csv"):
+def fuyu_jingdong(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="商城订单1.xlsx"):
     # 福域订单导入
-    fuyu = pd.read_csv(r"{}\{}".format(file_path,file_name))
-    fuyu = fuyu[(fuyu["订单状态"] != 7) & (fuyu["退款状态"] != 1) & (fuyu["订单状态"] != 4)]
-
-    fuyu = fuyu[["订单号","供货商","SKU","数量","来源spu","实际单价","商品名称"]]
+    fuyu = pd.read_excel(r"{}\{}".format(file_path,file_name),converters={"实际单价": int,"数量":int,"来源spu":str})
+    # fuyu = fuyu[(fuyu["订单状态"] != 7) & (fuyu["退款状态"] != 1) & (fuyu["订单状态"] != 4)]
+    fuyu = fuyu[fuyu["退款状态"] != 1]
+    fuyu = fuyu[["订单号","供货商","SKU","数量","来源spu","实际单价","商品名称","订单状态"]]
     fuyu.rename(columns={"订单号":"business_id","供货商":"business_channel","SKU":"sku",
-                         "数量":"business_quantity","来源SPU":"spu","实际单价":"business_price",
-                         "商品名称":"business_name"},inplace=True)
+                         "数量":"business_quantity","来源spu":"spu","实际单价":"business_price",
+                         "订单状态":"order_statue","商品名称":"business_name"},inplace=True)
+    # print(fuyu.info)
+    # fuyu["business_single_price"] = fuyu["business_price"]-fuyu["business_quantity"]
 
     fuyu.reset_index(drop=True,inplace=True)
 
     # fuyu["business_id"] = fuyu["business_id"].apply(lambda x: str(x).split("_")[0])
+
     fuyu.to_sql("business_relationship",engine,if_exists="replace")
+    sql = 'UPDATE business_relationship set spu="5237209" WHERE business_id="M0577127583677861888" and spu = "5158704"'
+    cursor.execute(sql)
+    cursor.commit()
 
 def fuyu_skuinfo(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name="商城订单sku.csv"):
     fuyu = pd.read_csv(r"{}\{}".format(file_path, file_name))
@@ -186,7 +199,8 @@ def caiwu_account(file_path="D:\\1何军\\财务系统",file_name="积分原始�
     # 积分原始对账数据
     caiwu = pd.read_excel(r"{}\{}".format(file_path,file_name),dtype={"sale_month": str})
     six_caiwu = pd.read_excel(r"{}\{}".format(file_path,"6原始数据.xlsx"),dtype={"sale_month": str})
-    sum_caiwu = pd.concat([caiwu,six_caiwu],axis=0)
+    seven_caiwu = pd.read_excel(r"{}\{}".format(file_path, "7原始数据.xlsx"), dtype={"sale_month": str})
+    sum_caiwu = pd.concat([caiwu,six_caiwu,seven_caiwu],axis=0)
     sum_caiwu["sale_month"] = sum_caiwu["sale_month"].apply(lambda x: str(x)[:7])
     sum_caiwu.reset_index(drop=True,inplace=True)
     sum_caiwu.to_sql("caiwu_account",engine, if_exists="replace")
@@ -202,10 +216,15 @@ if __name__=="__main__":
     # fuyu_skuinfo()
     # action_id 和progra_id对应关系导入
     # pid_aid()
-    caiwu_account()
+    # caiwu_account()
     #     打赏
     # dashang_import()
     # fuyu_jingdong()
+    #京东原始数据导入
+    jingdong_import(file_path="D:\\1何军\\财务对账\\5月\\京东",jingdong_name="需报账信息.xlsx",sheet_name="Sheet1")
+    # 闫浩的关系导入
+    jingdong_relationship(file_path="D:\\1何军\\财务系统",file_name="福域积分商城订单明细表（1月-6月）.xlsx",
+                          sheet_list=["1月","2月","3月","4月","5月","6月"])
 
 
 

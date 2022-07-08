@@ -45,9 +45,13 @@ class dataChange:
             result = self.business.find_one({"index":f})
             f+=1
             if result:
-                for s in range(0, result["business_quantity"]):
-                    self.base = result
-                    print(self.base["business_id"])
+                # 计单件商品
+                # for s in range(0, result["business_quantity"]):
+                #     self.base = result
+                #     print(self.base["business_id"])
+
+                self.base = result
+                print(self.base["business_id"])
                 self.mongoInsert()
             else:
                 break
@@ -90,7 +94,7 @@ class dataChange:
                 fg = 0
         if fg != 0:
             print("请查证",self.base["business_id"])
-            self.log.write(str(self.base["business_id"])+"\t"+str(fg)+"\n")
+            self.log.write(str(self.base["business_id"])+"\t"+str(self.base["order_statue"])+"\t"+str(fg)+"\n")
         if fel_list:
             qy = self.fuyu.delete_many({"index": {"$in": fel_list}})
 class accountCompare():
@@ -123,10 +127,20 @@ class accountCompare():
             print("program_id对比未发现异常")
 
 
+def dataImport():
+    mongodata = pd.DataFrame(list(client.fuyu.spbu.find()))
+    mongodata.to_sql("koujianresult",engine,if_exists="replace",index=False)
+
+
+
+
+
 if __name__ == "__main__":
-    dataChange().fuyuQuery()
-    dataChange().data_query()
+    # dataChange().fuyuQuery()
+    # dataChange().data_query()
     # accountCompare().run()
+    # 将MongoDB数据迁移到
+    dataImport()
 
 
 
