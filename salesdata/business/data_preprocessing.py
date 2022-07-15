@@ -26,18 +26,23 @@ def jingdong_import(file_path,jingdong_name,sheet_name):
         jingdong["实际支付金额"] = jingdong["商品含税总额"] - jingdong["退款金额"]
     else:
         jingdong["实际支付金额"] = jingdong["商品含税总额"]
-    jingdong = jingdong[['业务单号(子订单号)', '原始订单号', '下单时间', '商品类型', '商品编号', '商品名称', '商品税率', '商品数量', '商品含税单价',
-                         '商品含税总额',  "实际支付金额"]]
-    # '商品未税总额（未税单价*数量）', '商品未税单价',
-    jingdong.rename(columns={"业务单号(子订单号)": "child_number", "原始订单号": "origin_number", "下单时间": "order_time",
+    filter_str = ['业务单号(子订单号)', '原始订单号', '下单时间', '商品类型', '商品编号', '商品名称', '商品税率', '商品数量', '商品含税单价',
+                         '商品含税总额',  "实际支付金额"]
+    rename_dict = {"业务单号(子订单号)": "child_number", "原始订单号": "origin_number", "下单时间": "order_time",
                              "商品类型": "business_type", "商品编号": "business_code",
                              "商品名称": "business_name", "商品税率": "business_tax", "商品数量": "jbussiness_number",
                              "商品含税单价": "bussiness_tax_price", "商品含税总额": "business_total_tax_price",
-                              "实际支付金额": "pay_price"}, inplace=True)
+                              "实际支付金额": "pay_price"}
+    if "月份" in jingdong.columns.tolist():
+        filter_str.append("月份")
+        rename_dict["月份"] = "filter_month"
+    jingdong = jingdong[filter_str]
+    # '商品未税总额（未税单价*数量）', '商品未税单价',
+    jingdong.rename(columns=rename_dict, inplace=True)
     jingdong["child_number_code"] = jingdong.apply(lambda x: "jd" + str(x["child_number"])+str(x["business_code"]),axis=1)
-    business = jingdong[jingdong["business_type"] != "运费"]
-    business.reset_index(drop=True,inplace=True)
-    business.to_sql("jingdong", engine, if_exists="replace")
+    # business = jingdong[jingdong["business_type"] != "运费"]
+    jingdong.reset_index(drop=True,inplace=True)
+    jingdong.to_sql("jingdong", engine, if_exists="replace")
     # "商品未税总额（未税单价*数量）": "business_total_price",
     #                              "商品未税单价": "bussiness_price",
     # 运费分摊到每个商品上面
@@ -88,8 +93,8 @@ def jingdong_relationship(file_path,file_name,sheet_list):
                                      '商城单价': 'business_price', '数量': 'business_number', '商品品类': 'business_type'},
                             inplace=True)
         relation_file =  relation_file.astype(str)
-        relation_file["business_id_code"] = relation_file.apply(lambda x: str(x['business_id'])+str(x['business_code']),axis=1)
-        relation_file['child_number_code'] = relation_file.apply(lambda x: "jd"+str(x['child_number'])+str(x['business_code']),axis=1)
+        relation_file["business_id_code"] = relation_file.apply(lambda x: str(x['business_id'])+str(x['business_code']).replace(" ",""),axis=1)
+        relation_file['child_number_code'] = relation_file.apply(lambda x: "jd"+str(x['child_number'])+str(x['business_code']).replace(" ",""),axis=1)
         # '物流单号': ' logistics_number',
         if i == 0:
             relation_file.to_sql("guanxi", engine, if_exists="replace",index=False)
@@ -173,6 +178,7 @@ def fuyu_jingdong(file_path="D:\\1何军\\财务系统\\系统导出数据",file
     # fuyu["business_single_price"] = fuyu["business_price"]-fuyu["business_quantity"]
 
     fuyu.reset_index(drop=True,inplace=True)
+    fuyu["business_id_code"] = fuyu.apply(lambda x: str(x["business_id"])+str(x["spu"]),axis=1)
 
     # fuyu["business_id"] = fuyu["business_id"].apply(lambda x: str(x).split("_")[0])
 
@@ -219,12 +225,13 @@ if __name__=="__main__":
     # caiwu_account()
     #     打赏
     # dashang_import()
-    # fuyu_jingdong()
+    fuyu_jingdong()
     #京东原始数据导入
-    jingdong_import(file_path="D:\\1何军\\财务对账\\5月\\京东",jingdong_name="需报账信息.xlsx",sheet_name="Sheet1")
+    # jingdong_import(file_path="D:\\1何军\财务对账\\6月\\京东账单",jingdong_name="6月京东.xlsx",sheet_name="Sheet1")
     # 闫浩的关系导入
-    jingdong_relationship(file_path="D:\\1何军\\财务系统",file_name="福域积分商城订单明细表（1月-6月）.xlsx",
-                          sheet_list=["1月","2月","3月","4月","5月","6月"])
+    # jingdong_relationship(file_path="D:\\1何军\\财务系统",file_name="福域积分商城订单明细表（1月-6月）.xlsx",
+    #                       sheet_list=["1月","2月","3月","4月","5月","6月"])
+    # jingdong_import(file_path="D:\\1何军\\京东数据\\2报账单",jingdong_name="1-5月原始数据汇总.xlsx",sheet_name="Sheet1")
 
 
 

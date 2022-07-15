@@ -128,7 +128,8 @@ class accountCompare():
 
 
 def dataImport():
-    mongodata = pd.DataFrame(list(client.fuyu.spbu.find()))
+    mongodata = pd.DataFrame(list(client.fuyu.spbu2.find()))
+    print("ok")
     mongodata.to_sql("koujianresult",engine,if_exists="replace",index=False)
 
 

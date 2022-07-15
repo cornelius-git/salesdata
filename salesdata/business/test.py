@@ -129,12 +129,8 @@ class accountCompare():
 
 
 if __name__ == "__main__":
-    now1 = datetime.datetime.now()
-    for i in range(0,100):
-        sql = "SELECT business_id FROM fuyu WHERE `INDEX` = {}".format(i)
-        re = cursor.execute(sql)
-        print(re)
-    print(datetime.datetime.now()-now1)
-
+   sd = pd.DataFrame({"2":[54]})
+   if len(sd):
+       print("ok")
 
 
