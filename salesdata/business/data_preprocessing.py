@@ -148,6 +148,13 @@ def pid_aid(file_path="D:\\1何军\\财务系统\\系统导出数据",file_name=
                         common_2022.cell(row=i, column=4).value, common_2022.cell(row=i, column=5).value,
                         "2022-04", "2022-06")
             cursor.execute(sql1)
+            sql1 = "INSERT INTO action_program(action_id,action_name," \
+                   "program_id,integral_judge,action_type,use_type,start_month,end_month) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}') " \
+                .format(common_2022.cell(row=i, column=1).value, common_2022.cell(row=i, column=2).value,
+                        common_2022.cell(row=i, column=8).value, common_2022.cell(row=i, column=3).value,
+                        common_2022.cell(row=i, column=4).value, common_2022.cell(row=i, column=5).value,
+                        "2022-07", "2022-09")
+            cursor.execute(sql1)
         else:
             break
     cursor.commit()
@@ -225,9 +232,9 @@ if __name__=="__main__":
     # caiwu_account()
     #     打赏
     # dashang_import()
-    fuyu_jingdong()
+    # fuyu_jingdong()
     #京东原始数据导入
-    # jingdong_import(file_path="D:\\1何军\财务对账\\6月\\京东账单",jingdong_name="6月京东.xlsx",sheet_name="Sheet1")
+    jingdong_import(file_path="D:\\1何军\\财务对账\\4月",jingdong_name="京东原始数据0325-0424.xlsx",sheet_name="Sheet1")
     # 闫浩的关系导入
     # jingdong_relationship(file_path="D:\\1何军\\财务系统",file_name="福域积分商城订单明细表（1月-6月）.xlsx",
     #                       sheet_list=["1月","2月","3月","4月","5月","6月"])

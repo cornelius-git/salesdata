@@ -5,6 +5,7 @@ from sql_setting import *
 import numpy as np
 
 class erroData:
+    # 月初报账第一步
     def __init__(self,start_time,end_time):
         # 设定筛选时间区间
         self.aim = pd.DataFrame()
@@ -218,12 +219,11 @@ class jingdong:
     def __init__(self):
         #
         pass
-
-
 class dataSave:
     def __init__(self):
         pass
+
 if  __name__ == "__main__":
-    # erroData(start_time="2021-05-01",end_time="2022-07-01").run()
-    # erroData(start_time="2021-05-01", end_time="2022-07-01").macth_attribute_pid()
-    compareDifferent().month_compare()
+    # erroData(start_time="2021-05-01",end_time="2022-08-01").run()
+    erroData(start_time="2021-05-01", end_time="2022-08-01").macth_attribute_pid()
+    # compareDifferent().month_compare()
